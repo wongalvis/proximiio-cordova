@@ -23,9 +23,8 @@ public class ProximiioCordova extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
-		Log.d("ProximiioCordova execute:", args.getString(0) + ", " + args.getString(1));
 		activity = cordova.getActivity();
-        if (action.equals("setIDandAuthToken")) {
+    if (action.equals("setIDandAuthToken")) {
 			if (proximiio == null) {
 				id = args.getString(0);
 				token = args.getString(1);
@@ -61,10 +60,9 @@ public class ProximiioCordova extends CordovaPlugin {
 							outputs = new ArrayList<ProximiioOutput>();
 						}
 
-						String inputJson = getInputJSON(input.getType() == ProximiioInput.InputType.iBeacon, input);
+						String inputJson = getInputJSON(input);
 						webView.loadUrl("javascript:proximiio.triggeredInput(" + (input.getEntered() ? 1 : 0) + ", " + inputJson + ")");
 						String outputJson = getOutputJSON(outputs);
-						Log.d("ProximiioCordova", "outputJSON:" + outputJson);
 						webView.loadUrl("javascript:proximiio.triggeredOutput(" + outputJson + ", " + inputJson + ")");
 					}
 				});
@@ -76,6 +74,7 @@ public class ProximiioCordova extends CordovaPlugin {
 				activity.runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
+						Log.d("ProximiioCordova", "eventLeave start");
             input.handleOutput(activity, null, true, false);
 						ProximiioActionFlow actionFlow = input.getActionFlow();
 						ArrayList<ProximiioOutput> outputs;
@@ -84,14 +83,12 @@ public class ProximiioCordova extends CordovaPlugin {
 						} else {
 							outputs = new ArrayList<ProximiioOutput>();
 						}
-						String inputJson = getInputJSON(input.getType() == ProximiioInput.InputType.iBeacon, input);
+						String inputJson = getInputJSON(input);
 						webView.loadUrl("javascript:proximiio.triggeredInput(" + (input.getEntered() ? 1 : 0) + ", " + inputJson + ")");
 						String outputJson = getOutputJSON(outputs);
-						Log.d("ProximiioCordova", "outputJSON:" + outputJson);
 						webView.loadUrl("javascript:proximiio.triggeredOutput(" + outputJson + ", " + inputJson + ")");
 					}
 				});
-				Log.d("ProximiioCordova", "eventLeave");
 			}
 
 			@Override
@@ -102,7 +99,6 @@ public class ProximiioCordova extends CordovaPlugin {
 						webView.loadUrl("javascript:proximiio.updatedPosition(({coordinates:{lat:" + lat + ", lon:" + lon + "}, accuracy:" + accuracy + ", type:'" + inputType.toString() + "'}))");
 					}
 				});
-				Log.d("ProximiioCordova", "positionChange");
 			}
 
 			@Override
@@ -126,16 +122,24 @@ public class ProximiioCordova extends CordovaPlugin {
 		});
 	}
 
-	private String getInputJSON(boolean iBeacon, ProximiioInput input) {
-		if (iBeacon) {
+	private String getInputJSON(ProximiioInput input) {
+		ProximiioInput.InputType inputType = input.getType();
+
+		if (inputType == ProximiioInput.InputType.iBeacon) {
 			return "({type:'iBeacon', id:'" + input.getId() + "', name:'" + input.getName() +
 				   "', accuracy:" + input.getAccuracy() + ", coordinates:{lat:" + input.getLat() +
 				   ", lon:" + input.getLon() + "}, departmentid:'" + input.getDepartmentID() +
 				   "', entered:" + (input.getEntered() ? 1 : 0) + ", beacon:{uuid:'" +
-				   input.getIBeacon().getUUID() + "', major:" + input.getIBeacon().getMajor() +
-				   ", minor:" + input.getIBeacon().getMinor() + ", accuracy:" + input.getIBeacon().getAccuracy() + "}})";
-		}
-		else {
+				   input.getBeacon().getUUID() + "', major:" + input.getBeacon().getMajor() +
+				   ", minor:" + input.getBeacon().getMinor() + ", accuracy:" + input.getBeacon().getAccuracy() + "}})";
+		} else if (inputType == ProximiioInput.InputType.EddyStone) {
+			return "({type:'Eddystone Beacon', id:'" + input.getId() + "', name:'" + input.getName() +
+				   "', accuracy:" + input.getAccuracy() + ", coordinates:{lat:" + input.getLat() +
+				   ", lon:" + input.getLon() + "}, departmentid:'" + input.getDepartmentID() +
+				   "', entered:" + (input.getEntered() ? 1 : 0) + ", beacon:{instanceId:'" +
+				   input.getBeacon().getInstanceId() + "', namespace:'" + input.getBeacon().getNamespace() +
+				   "', accuracy:" + input.getBeacon().getAccuracy() + "}})";
+		} else {
 			return "({type:'" + input.getType().toString() + "', id:'" + input.getId() + "', name:'" +
 				   input.getName() + "', accuracy:" + input.getAccuracy() + ", coordinates:{lat:" +
 				   input.getLat() + ", lon:" + input.getLon() + "}, departmentid:'" +
