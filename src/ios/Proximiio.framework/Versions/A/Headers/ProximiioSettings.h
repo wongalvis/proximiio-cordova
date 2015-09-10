@@ -65,11 +65,6 @@
 @property (nonatomic, readonly) NSString    *SteerpathNDD;
 
 /*!
- @brief BOOL that states whether Eddystone is enabled.
- */
-@property (nonatomic, readonly) BOOL        Eddystone;
-
-/*!
  @brief BOOL that changes state whenever the settings are updated.
  @warning The state of the BOOL does @b not state if the settings have changed (recently). It should only be used in key-value observations.
  */

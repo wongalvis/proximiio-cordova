@@ -12,26 +12,22 @@
 
 - (void)showPushMessage:(CDVInvokedUrlCommand*)command;
 
-@property (nonatomic, strong) NSMutableDictionary *outputs;
-
 @end
 
 @implementation proximiio
-
-static NSMutableDictionary *outputs;
 
 - (void)setIDandAuthToken:(CDVInvokedUrlCommand*)command
 {
     NSString* callbackId    = [command callbackId];
     NSString* idStr         = [[command arguments] objectAtIndex:0];
     NSString* authToken     = [[command arguments] objectAtIndex:1];
-    self.outputs            = [NSMutableDictionary dictionary];
 
     [[self commandDelegate] runInBackground:^{
         [[Proximiio sharedInstance] setAppID:idStr andAuthToken:authToken];
         [[Proximiio sharedInstance] setDelegate:self];
-
+        
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        
         [[self commandDelegate] sendPluginResult:result callbackId:callbackId];
     }];
 }
@@ -47,7 +43,7 @@ static NSMutableDictionary *outputs;
         [[Proximiio sharedInstance] setDebug:NO];
 
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-
+        
     [[self commandDelegate] sendPluginResult:result callbackId:callbackId];
 }
 
@@ -57,7 +53,7 @@ static NSMutableDictionary *outputs;
     NSString* idStr         = [[command arguments] objectAtIndex:0];
 
     CDVPluginResult* result;
-
+        
     if(idStr != nil)
     {
         ProximiioPushOutput *pushOutput = (ProximiioPushOutput*)[[[Proximiio sharedInstance] outputs] objectForKey:idStr];
@@ -76,13 +72,13 @@ static NSMutableDictionary *outputs;
 
 - (NSString*)beaconToString:(ProximiioBeacon*)beacon
 {
-    return [NSString stringWithFormat:@"{uuid:'%@', major:%d, minor:%d, accuracy:%f}",
+    return [NSString stringWithFormat:@"{uuid:'%@', major:%d, minor:%d, accuracy:%f}", 
         [[beacon uuid] UUIDString], [beacon major], [beacon minor], [beacon distance]];
 }
 
 - (NSString*)eddystoneToString:(ProximiioEddystoneBeacon*)beacon
 {
-    return [NSString stringWithFormat:@"{namespace:'%@', instanceID:'%@', url:'%@', batteryVoltage:%.2f, temperature:%.2f, uptime:%d, pdu:%d}",
+    return [NSString stringWithFormat:@"{namespace:'%@', instanceID:'%@', url:'%@', batteryVoltage:%.2f, temperature:%.2f, uptime:%d, pdu:%d}", 
         [beacon Namespace], [beacon InstanceID], [beacon URL], [[beacon batteryVoltage] floatValue], [[beacon temperature] floatValue], [[beacon uptime] intValue], [[beacon PDU] intValue]];
 }
 
@@ -112,39 +108,19 @@ static NSMutableDictionary *outputs;
     {
         ProximiioPushOutput *pushOutput = (ProximiioPushOutput*)output;
 
-        return [NSString stringWithFormat:@"{type:'PushMessage', id:'%@', title:'%@', content:'%@'}", [output ID], [[pushOutput title] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""], [[pushOutput content] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""]];
+        return [NSString stringWithFormat:@"\"({type:'PushMessage', id:'%@', title:'%@', content:'%@'})\"", [output ID], [[pushOutput title] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""], [[pushOutput content] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""]];
     }
     else if([output class] == [ProximiioRawOutput class])
     {
-        NSMutableString *pairs = [[NSMutableString alloc] init];
-        ProximiioRawOutput *rawOutput = (ProximiioRawOutput*)output;
-        int num = 0;
-        for(NSString *key in [rawOutput pairs])
-        {
-            [pairs appendFormat:@"'%@':'%@'", key, [[rawOutput pairs] objectForKey:key]];
-            num++;
-            if(num < [[rawOutput pairs] count])
-                [pairs appendString:@","];
-        }
-        return [NSString stringWithFormat:@"{type:'Raw', id:'%@', pairs:{%@}}", [output ID], pairs];
+        return [NSString stringWithFormat:@"\"({type:'Raw', id:'%@'})\"", [output ID]];
     }
     else if([output class] == [ProximiioXHTMLOutput class])
     {
         ProximiioXHTMLOutput *xhtmlOutput = (ProximiioXHTMLOutput*)output;
-        return [NSString stringWithFormat:@"{type:'XHTML', id:'%@', title:'%@', content:'%@'}", [output ID], [[xhtmlOutput title] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""], [[xhtmlOutput content] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""]];
+        return [NSString stringWithFormat:@"\"({type:'XHTML', id:'%@', title:'%@', content:'%@'})\"", [output ID], [[xhtmlOutput title] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""], [[xhtmlOutput content] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""]];
     }
     else
-        return [NSString stringWithFormat:@"{type:'Unkown', id:'%@'}", [output ID]];
-}
-
-- (NSString *)outputsToString
-{
-    NSMutableArray *strings = [NSMutableArray array];
-    for (NSString *key in self.outputs) {
-        NSString *output = [self.outputs objectForKey:key];
-        [strings addObject:output];
-    }
-    return [strings componentsJoinedByString:@", "];
+        return [NSString stringWithFormat:@"\"({type:'Unkown', id:'%@'})\"", [output ID]];
 }
 
 - (NSString*)coordinatesToString:(ProximiioCoordinates*)coordinates
@@ -157,8 +133,7 @@ Delegate functions
 */
 - (void)proximiio:(Proximiio *)proximiio triggeredOutput:(ProximiioOutput *)output forInput:(ProximiioInput *)input inActionFlow:(ProximiioActionFlow *)actionFlow
 {
-    [self.outputs setObject:[self outputToString:output] forKey:output.ID];
-    NSString* jsString = [NSString stringWithFormat:@"proximiio.triggeredOutput(\"[%@]\", %@);", [self outputsToString], [self inputToString:input]];
+    NSString* jsString = [NSString stringWithFormat:@"proximiio.triggeredOutput(%@, %@);", [self outputToString:output], [self inputToString:input]];
     [[self webView] performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:jsString waitUntilDone:NO];
 }
 
