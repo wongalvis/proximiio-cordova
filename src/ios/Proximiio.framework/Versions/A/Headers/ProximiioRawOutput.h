@@ -14,4 +14,23 @@
  */
 @interface ProximiioRawOutput : ProximiioOutput
 
+/*!
+ @brief Dictionary containing all keys and values configured in the portal.
+ */
+@property (nonatomic, readonly) NSDictionary *pairs;
+
+
+/*!
+ @brief Inits a ProximiioRawOutput instance.
+ 
+ @param ID
+ Unique Input ID.
+ @param pairs
+ The dictionary containing the key-value pairs.
+ 
+ @return An initialized ProximiioRawOutput instance.
+ */
+- (ProximiioRawOutput*)initWithID:(NSString*)ID pairs:(NSDictionary*)pairs;
+
+
 @end

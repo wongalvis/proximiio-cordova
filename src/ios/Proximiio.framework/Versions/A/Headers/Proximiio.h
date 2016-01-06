@@ -29,12 +29,14 @@
  * @constant kIndoorAtlasPositionUpdate Update through IndoorAtlas.
  * @constant kGeofencePositionUpdate    Update through entering/exiting a geofence.
  * @constant kSteerpathPositionUpdate   Update through SteerPath.
+ * @constant kEddystonePositionUpdate   Update through Eddystone.
  */
 typedef NS_ENUM(NSInteger, ProximiioUpdateType) {
     kIBeaconPositionUpdate,
     kIndoorAtlasPositionUpdate,
     kGeofencePositionUpdate,
-    kSteerpathPositionUpdate
+    kSteerpathPositionUpdate,
+    kEddystonePositionUpdate
 };
 
 
@@ -186,5 +188,7 @@ typedef NS_ENUM(NSInteger, ProximiioUpdateType) {
  Your organizations authentication token.
  */
 - (void)setAppID:(NSString *)appID andAuthToken:(NSString*)authToken;
+
+- (void)setAppID:(NSString *)appID andAuthToken:(NSString*)authToken useDevelopmentFirebase:(BOOL)development;
 
 @end

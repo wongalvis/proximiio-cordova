@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin id="navtureapps-proximiio" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>proximiio</name>
-  <asset src="www/proximiio.js" target="js/proximiio.js"/>
+  	<asset src="www/proximiio.js" target="js/proximiio.js"/>
 
 	<js-module name="proximiio" src="www/proximiio.js">
 		<clobbers target="proximiio" />
@@ -46,7 +46,7 @@
 
 		<source-file src="src/android/ProximiioCordova.java" target-dir="src/com/navtureapps/cordovaplugin"/>
 
-		<framework src="com.android.support:appcompat-v7:+"/>
+		<framework src="com.android.support:appcompat-v7:22+"/>
 		<framework src="com.google.android.gms:play-services:7.3.0" />
 
 		<framework src="src/android/build-extras.gradle" custom="true" type="gradleReference" />
