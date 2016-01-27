@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="navtureapps-proximiio" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<plugin id="navtureapps-proximiio" version="0.0.2" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>proximiio</name>
   	<asset src="www/proximiio.js" target="js/proximiio.js"/>
 
@@ -73,6 +73,7 @@
 		<config-file target="AndroidManifest.xml" parent="/manifest/application">
 			<service android:name="com.navtureapps.proximiioandroid.ProximiioService" />
 			<service android:name="com.navtureapps.proximiioandroid.ProximiioGeofenceService" />
+			<service android:exported="false" android:label="IALocationService" android:name="com.indooratlas.android.sdk.IALocationService" />
 		</config-file>
 
 

@@ -24,7 +24,7 @@ public class ProximiioCordova extends CordovaPlugin {
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
 		activity = cordova.getActivity();
-    if (action.equals("setIDandAuthToken")) {
+    	if (action.equals("setIDandAuthToken")) {
 			if (proximiio == null) {
 				id = args.getString(0);
 				token = args.getString(1);
@@ -51,7 +51,7 @@ public class ProximiioCordova extends CordovaPlugin {
 				activity.runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-            input.handleOutput(activity, null, true, false);
+           				input.handleOutput(activity, null, true, false);
 						ProximiioActionFlow actionFlow = input.getActionFlow();
 						ArrayList<ProximiioOutput> outputs;
 						if (actionFlow != null) {
@@ -59,14 +59,12 @@ public class ProximiioCordova extends CordovaPlugin {
 						} else {
 							outputs = new ArrayList<ProximiioOutput>();
 						}
-
-						String inputJson = getInputJSON(input);
+						String inputJson = input.getJSON().toString();
 						webView.loadUrl("javascript:proximiio.triggeredInput(" + (input.getEntered() ? 1 : 0) + ", " + inputJson + ")");
 						String outputJson = getOutputJSON(outputs);
 						webView.loadUrl("javascript:proximiio.triggeredOutput(" + outputJson + ", " + inputJson + ")");
 					}
 				});
-				Log.d("ProximiioCordova", "eventEnter");
 			}
 
 			@Override
@@ -74,7 +72,6 @@ public class ProximiioCordova extends CordovaPlugin {
 				activity.runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						Log.d("ProximiioCordova", "eventLeave start");
             input.handleOutput(activity, null, true, false);
 						ProximiioActionFlow actionFlow = input.getActionFlow();
 						ArrayList<ProximiioOutput> outputs;
@@ -83,7 +80,7 @@ public class ProximiioCordova extends CordovaPlugin {
 						} else {
 							outputs = new ArrayList<ProximiioOutput>();
 						}
-						String inputJson = getInputJSON(input);
+						String inputJson = input.getJSON().toString();
 						webView.loadUrl("javascript:proximiio.triggeredInput(" + (input.getEntered() ? 1 : 0) + ", " + inputJson + ")");
 						String outputJson = getOutputJSON(outputs);
 						webView.loadUrl("javascript:proximiio.triggeredOutput(" + outputJson + ", " + inputJson + ")");
@@ -106,7 +103,7 @@ public class ProximiioCordova extends CordovaPlugin {
 				activity.runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						Toast.makeText(activity, error.toString(), Toast.LENGTH_SHORT).show();
+						//Toast.makeText(activity, error.toString(), Toast.LENGTH_SHORT).show();
 					}
 				});
 			}
@@ -120,31 +117,6 @@ public class ProximiioCordova extends CordovaPlugin {
 				Toast.makeText(activity, "Init success!", Toast.LENGTH_SHORT).show();
 			}
 		});
-	}
-
-	private String getInputJSON(ProximiioInput input) {
-		ProximiioInput.InputType inputType = input.getType();
-
-		if (inputType == ProximiioInput.InputType.iBeacon) {
-			return "({type:'iBeacon', id:'" + input.getId() + "', name:'" + input.getName() +
-				   "', accuracy:" + input.getAccuracy() + ", coordinates:{lat:" + input.getLat() +
-				   ", lon:" + input.getLon() + "}, departmentid:'" + input.getDepartmentID() +
-				   "', entered:" + (input.getEntered() ? 1 : 0) + ", beacon:{uuid:'" +
-				   input.getBeacon().getUUID() + "', major:" + input.getBeacon().getMajor() +
-				   ", minor:" + input.getBeacon().getMinor() + ", accuracy:" + input.getBeacon().getAccuracy() + "}})";
-		} else if (inputType == ProximiioInput.InputType.EddyStone) {
-			return "({type:'Eddystone Beacon', id:'" + input.getId() + "', name:'" + input.getName() +
-				   "', accuracy:" + input.getAccuracy() + ", coordinates:{lat:" + input.getLat() +
-				   ", lon:" + input.getLon() + "}, departmentid:'" + input.getDepartmentID() +
-				   "', entered:" + (input.getEntered() ? 1 : 0) + ", beacon:{instanceId:'" +
-				   input.getBeacon().getInstanceId() + "', namespace:'" + input.getBeacon().getNamespace() +
-				   "', accuracy:" + input.getBeacon().getAccuracy() + "}})";
-		} else {
-			return "({type:'" + input.getType().toString() + "', id:'" + input.getId() + "', name:'" +
-				   input.getName() + "', accuracy:" + input.getAccuracy() + ", coordinates:{lat:" +
-				   input.getLat() + ", lon:" + input.getLon() + "}, departmentid:'" +
-				   input.getDepartmentID() + "', entered:" + (input.getEntered() ? 1 : 0) + "}})";
-		}
 	}
 
 	private String getOutputJSON(ArrayList<ProximiioOutput> outputs) {
@@ -167,16 +139,15 @@ public class ProximiioCordova extends CordovaPlugin {
 
 	@Override
 	public void onStop() {
-		if (runOnBackground) {
-            proximiio.stopActivity();
-        }
-        else {
-            proximiio.onDestroy();
-        }
+          if (runOnBackground) {
+             proximiio.stopActivity();
+          } else {
+             proximiio.onDestroy();
+          }
 		activity.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				Toast.makeText(activity, "Stopping, left on background: " + String.valueOf(runOnBackground), Toast.LENGTH_SHORT).show();
+	//			Toast.makeText(activity, "Stopping, left on background: " + String.valueOf(runOnBackground), Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
