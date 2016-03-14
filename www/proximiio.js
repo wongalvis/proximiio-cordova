@@ -6,8 +6,8 @@ var positionChangeCallback  = null;
 var errorCallback           = null;
 
 module.exports = {
-    setIDandAuthToken: function (id, authToken, successCallback, errorCallback) {
-        cordova.exec(successCallback, errorCallback, "ProximiioCordova", "setIDandAuthToken", [id, authToken]);
+    setToken: function (authToken, successCallback, errorCallback) {
+        cordova.exec(successCallback, errorCallback, "ProximiioCordova", "setToken", [authToken]);
     },
 
     setDebugOutput: function(enableDebug, successCallback, errorCallback)
@@ -43,18 +43,19 @@ module.exports = {
     },
 
     /* Called by native side */
-    triggeredInput: function(entered, input) {
-        var inputObj = eval(input);
-        inputTriggerCallback(inputObj, entered);
+    triggeredInput: function(enter, geofence) {
+        var inputObj = eval(geofence);
+        inputTriggerCallback(enter, geofence);
     },
-    triggeredOutput: function(output, input) {
-        var inputObj = eval(input);
+    triggeredOutput: function(output) {
+        console.log('should updateOutput:', output);
         var outputObj = eval(output);
-        outputTriggerCallback(outputObj, inputObj);
+        outputTriggerCallback(outputObj);
     },
     updatedPosition: function(coords) {
+        console.log('should updatePosition:', coords);
         var coordsObj = eval(coords);
-        positionChangeCallback(coordsObj);
+        positionChangeCallback(coords);
     },
     encounteredError: function(code, id, str) {
         var errorObj = {};

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="navtureapps-proximiio" version="0.0.2" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<plugin id="navtureapps-proximiio" version="0.2.0" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>proximiio</name>
   	<asset src="www/proximiio.js" target="js/proximiio.js"/>
 
@@ -16,12 +16,12 @@
 		<config-file target="*-Info.plist" parent="NSLocationAlwaysUsageDescription">
 				<string>Configure this string in the plist!</string>
 		</config-file>
-		<source-file src="src/ios/proximiio.m" />
+
+		<source-file src="src/ios/proximiio.m"/>
+		<resource-file src="src/ios/Proximiio.framework"/>
+
 		<framework src="src/ios/Proximiio.framework" custom="true" />
-		<framework src="src/ios/GeoFire.framework" custom="true" />
-		<framework src="src/ios/IndoorAtlas.framework" custom="true" />
-		<framework src="src/ios/IndoorGuide.framework" custom="true" />
-		<framework src="src/ios/Firebase.framework" custom="true" />
+
 		<framework src="CoreLocation.framework" />
 		<framework src="CoreBluetooth.framework" />
 		<framework src="SystemConfiguration.framework" />
@@ -32,6 +32,7 @@
 		<framework src="libz.dylib" />
 		<framework src="libc++.dylib" />
 	</platform>
+
 	<platform name="android">
 
 		<config-file target="res/xml/config.xml" parent="/*">
@@ -46,11 +47,10 @@
 
 		<source-file src="src/android/ProximiioCordova.java" target-dir="src/com/navtureapps/cordovaplugin"/>
 
-		<framework src="com.android.support:appcompat-v7:22+"/>
-		<framework src="com.google.android.gms:play-services:7.3.0" />
-
+		<framework src="com.android.support:appcompat-v7:23.2.0"/>
+		<framework src="com.android.support:design:23.2.0"/>
+		<framework src="com.google.android.gms:play-services-location:8.4.0" />
 		<framework src="src/android/build-extras.gradle" custom="true" type="gradleReference" />
-    <resource-file src="src/android/libs/proximiioandroidlibrary-release.aar" target="libs/proximiioandroidlibrary-release.aar" />
 
 		<config-file target="AndroidManifest.xml" parent="/manifest">
 			<uses-permission android:name="android.permission.BLUETOOTH" />
@@ -65,15 +65,26 @@
 			<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 			<uses-permission android:name="android.permission.WAKE_LOCK" />
 
-			<uses-feature
-				android:name="android.hardware.bluetooth_le"
-				android:required="true" />
+			<uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+			<uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
+			<uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
+			<uses-feature android:name="android.hardware.wifi" android:required="true" />
+			<uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
+
 		</config-file>
 
 		<config-file target="AndroidManifest.xml" parent="/manifest/application">
-			<service android:name="com.navtureapps.proximiioandroid.ProximiioService" />
-			<service android:name="com.navtureapps.proximiioandroid.ProximiioGeofenceService" />
-			<service android:exported="false" android:label="IALocationService" android:name="com.indooratlas.android.sdk.IALocationService" />
+			<service android:name="io.proximi.proximiiolibrary.ProximiioService"
+					 android:label="ProximiioService"
+					 android:exported="false"/>
+
+			<service android:name="com.indooratlas.android.sdk.IALocationService"
+					 android:label="IALocationService"
+					 android:exported="false"/>
+
+			<meta-data
+					android:name="com.google.android.gms.version"
+					android:value="@integer/google_play_services_version" />
 		</config-file>
 
 
