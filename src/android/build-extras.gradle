@@ -3,27 +3,19 @@ repositories {
     flatDir {
         dirs 'libs'
     }
+    maven {
+        url "http://dl.bintray.com/proximiio/maven"
+    }
+    maven {
+        url "http://indooratlas-ltd.bintray.com/mvn-public"
+    }
 }
 
 dependencies {
-    compile 'com.android.support:multidex:1.0.0'
-    compile ('com.firebase:geofire:1.1.0')  {
-        exclude module: 'firebase-client-android'
-        exclude module: 'firebase-client-jvm'
-    }
-    compile ('com.navtureapps.proximiiolibrary:proximiioandroidlibrary-release@aar') {
-        exclude group: 'com.firebase', module: 'firebase-client-android'
-    }
+    compile 'io.proximi.proximiiolibrary:proximiiolibrary:1.0.0'
 }
 
 android {
-  defaultConfig {
-    multiDexEnabled true
-  }
-  dexOptions {
-    javaMaxHeapSize "4g"
-    preDexLibraries = false
-  }
   packagingOptions {
     exclude 'META-INF/NOTICE'
     exclude 'META-INF/LICENSE'
