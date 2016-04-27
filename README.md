@@ -57,9 +57,3 @@ in that case edit platforms/android/AndroidManifest.xml and replace
 with
     <uses-sdk android:minSdkVersion="18" android:targetSdkVersion="22" />
 ```
-
-Also make sure the app has multidex enabled, 
-
-```
-    <application android:name="android.support.multidex.MultiDexApplication" ... >...</application>
-```
