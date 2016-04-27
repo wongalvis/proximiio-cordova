@@ -3,6 +3,7 @@
 var inputTriggerCallback    = null;
 var outputTriggerCallback   = null;
 var positionChangeCallback  = null;
+var floorChangedCallback    = null;
 var errorCallback           = null;
 
 module.exports = {
@@ -27,6 +28,10 @@ module.exports = {
     {
         positionChangeCallback = callback;
     },
+    setFloorChangedCallback: function(callback)
+    {
+        floorChangedCallback = callback;
+    },
     setErrorCallback: function(callback)
     {
         errorCallback = callback;
@@ -37,7 +42,7 @@ module.exports = {
         cordova.exec(successCallback, errorCallback, "ProximiioCordova", "showPushMessage", [pushOutput.id]);
     },
 
-	  setRunOnBackground: function(run, successCallback, errorCallback)
+    setRunOnBackground: function(run, successCallback, errorCallback)
     {
         cordova.exec(successCallback, errorCallback, "ProximiioCordova", "setRunOnBackground", [run]);
     },
@@ -56,6 +61,11 @@ module.exports = {
         console.log('should updatePosition:', coords);
         var coordsObj = eval(coords);
         positionChangeCallback(coords);
+    },
+    changedFloor: function(floor) {
+        console.log('should change floor:', floor);
+        var floorObj = eval(floor); 
+        changedFloorCallback(floorObj);
     },
     encounteredError: function(code, id, str) {
         var errorObj = {};

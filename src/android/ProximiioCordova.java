@@ -14,6 +14,7 @@ import io.proximi.proximiiolibrary.Proximiio;
 import io.proximi.proximiiolibrary.ProximiioFactory;
 import io.proximi.proximiiolibrary.ProximiioGeofence;
 import io.proximi.proximiiolibrary.ProximiioListener;
+import io.proximi.proximiiolibrary.ProximiioFloor;
 
 public class ProximiioCordova extends CordovaPlugin {
 	private Proximiio proximiio;
@@ -65,6 +66,18 @@ public class ProximiioCordova extends CordovaPlugin {
 					}
 				});
 			}
+  
+                        @Override
+                        public void changedFloor(final ProximiioFloor floor) {
+                                Log.d(TAG, "changedFloor: " + floor.getName());
+                                activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                                String floorJson = geofence.getJSON().toString();
+                                                webView.loadUrl("javascript:proximiio.changedFloor(0, " + floorJson + ")");
+                                        }
+                                }); 
+ 			}
 
 			@Override
 			public void position(final double lat, final double lon, final double accuracy) {
