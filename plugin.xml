@@ -47,9 +47,9 @@
 
 		<source-file src="src/android/ProximiioCordova.java" target-dir="src/com/navtureapps/cordovaplugin"/>
 
-		<framework src="com.android.support:appcompat-v7:23.2.0"/>
-		<framework src="com.android.support:design:23.2.0"/>
-		<framework src="com.google.android.gms:play-services-location:8.4.0" />
+		<framework src="com.android.support:appcompat-v7:23.+"/>
+		<framework src="com.android.support:design:23.+"/>
+		<framework src="com.google.android.gms:play-services-location:8.+" />
 		<framework src="src/android/build-extras.gradle" custom="true" type="gradleReference" />
 
 		<config-file target="AndroidManifest.xml" parent="/manifest">
