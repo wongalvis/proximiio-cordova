@@ -9,6 +9,7 @@ import android.content.Intent;
 import java.lang.Runnable;
 import java.util.ArrayList;
 import org.json.JSONObject;
+import android.support.annotation.Nullable;
 
 import io.proximi.proximiiolibrary.Proximiio;
 import io.proximi.proximiiolibrary.ProximiioFactory;
