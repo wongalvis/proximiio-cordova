@@ -73,7 +73,7 @@ public class ProximiioCordova extends CordovaPlugin {
                                 activity.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                                String floorJson = geofence.getJSON().toString();
+                                                String floorJson = floor.getJSON().toString();
                                                 webView.loadUrl("javascript:proximiio.changedFloor(0, " + floorJson + ")");
                                         }
                                 }); 
