@@ -4,7 +4,10 @@ repositories {
         dirs 'libs'
     }
     maven {
-        url "http://dl.bintray.com/proximiio/maven"
+        url "http://proximi-io.bintray.com/proximiio-android"
+    }
+    maven {
+        url "http://indooratlas-ltd.bintray.com/mvn-public-alpha"
     }
     maven {
         url "http://indooratlas-ltd.bintray.com/mvn-public"
@@ -12,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    compile 'io.proximi.proximiiolibrary:proximiiolibrary:1.1.5'
+    compile 'io.proximi.proximiiolibrary:proximiiolibrary:1.1.+'
 }
 
 android {
