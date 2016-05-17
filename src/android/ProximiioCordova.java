@@ -10,147 +10,170 @@ import java.lang.Runnable;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
 
 import io.proximi.proximiiolibrary.Proximiio;
 import io.proximi.proximiiolibrary.ProximiioFactory;
 import io.proximi.proximiiolibrary.ProximiioGeofence;
 import io.proximi.proximiiolibrary.ProximiioListener;
 import io.proximi.proximiiolibrary.ProximiioFloor;
+;
 
-public class ProximiioCordova extends CordovaPlugin {
-	private Proximiio proximiio;
-	private String id;
-	private String token;
-	private boolean runOnBackground;
-	private Activity activity;
-	private static final String TAG = "ProximiioCordova";
+public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissionsResultCallback {
+  private Proximiio proximiio;
+  private ProximiioListener listener;
+  private String id;
+  private String token;
+  private boolean runOnBackground;
+  private Activity activity;
+  private static final String TAG = "ProximiioCordova";
 
-    @Override
-    public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
-		activity = cordova.getActivity();
-    	if (action.equals("setToken")) {
-			if (proximiio == null) {
-				token = args.getString(0);
-				initProximiio();
-			}
-		} else if (action.equals("showPushMessage")) {
+  private static final String ACTION_SET_TOKEN = "setToken";
+  private static final String ACTION_SHOW_PUSH_MESSAGE = "showPushMessage";
+  private static final String ACTION_SET_RUN_ON_BACKGROUND = "setRunOnBackground";
 
-		} else if (action.equals("setRunOnBackground")) {
-			runOnBackground = args.getBoolean(0);
-		}
-		return true;
+  @Override
+  public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
+    activity = cordova.getActivity();
+    cordova.setActivityResultCallback(this);
+    if (action.equals(ACTION_SET_TOKEN)) {
+        if (proximiio == null) {
+          token = args.getString(0);
+          initProximiio();
+        }
+    } else if (action.equals(ACTION_SHOW_PUSH_MESSAGE)) {
+
+    } else if (action.equals(ACTION_SET_RUN_ON_BACKGROUND)) {
+      runOnBackground = args.getBoolean(0);
     }
+    return true;
+  }
 
-	private void initProximiio() {
+  private void initProximiio() {
+    proximiio = ProximiioFactory.getProximiio(activity, activity);
+    listener = new ProximiioListener() {
+      @Override
+      public void geofenceEnter(final ProximiioGeofence geofence) {
+        Log.d(TAG, "Geofence enter: " + geofence.getName());
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+          String geofenceJson = geofence.getJSON().toString();
+          webView.loadUrl("javascript:proximiio.triggeredInput(1, " + geofenceJson + ")");
+            }
+        });
+      }
 
-		proximiio = ProximiioFactory.getProximiio(activity.getApplicationContext(), activity, new ProximiioListener() {
-			@Override
-			public void geofenceEnter(final ProximiioGeofence geofence) {
-				Log.d(TAG, "Geofence enter: " + geofence.getName());
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String geofenceJson = geofence.getJSON().toString();
-                        webView.loadUrl("javascript:proximiio.triggeredInput(1, " + geofenceJson + ")");
-                    }
-                });
-			}
+      @Override
+      public void geofenceExit(final ProximiioGeofence geofence) {
+        Log.d(TAG, "Geofence exit: " + geofence.getName());
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+          String geofenceJson = geofence.getJSON().toString();
+          webView.loadUrl("javascript:proximiio.triggeredInput(0, " + geofenceJson + ")");
+          }
+        });
+      }
 
-			@Override
-			public void geofenceExit(final ProximiioGeofence geofence) {
-				Log.d(TAG, "Geofence exit: " + geofence.getName());
-				activity.runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						String geofenceJson = geofence.getJSON().toString();
-						webView.loadUrl("javascript:proximiio.triggeredInput(0, " + geofenceJson + ")");
-					}
-				});
-			}
-  
-                        @Override
-                        public void changedFloor(@Nullable ProximiioFloor floor) {
-                        	if (floor != null) {
-                                  Log.d(TAG, "changedFloor: " + floor.getName());
-                                  final String floorJson = floor.getJSON().toString();
-                                  activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                                webView.loadUrl("javascript:proximiio.changedFloor(0, " + floorJson + ")");
-                                        }
-                                  }); 
-                        	}
- 			}
+      @Override
+      public void changedFloor(@Nullable ProximiioFloor floor) {
+        if (floor != null) {
+          Log.d(TAG, "changedFloor: " + floor.getName());
+          final String floorJson = floor.getJSON().toString();
+          activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                        webView.loadUrl("javascript:proximiio.changedFloor(0, " + floorJson + ")");
+                }
+          });
+        }
+      }
 
-			@Override
-			public void position(final double lat, final double lon, final double accuracy) {
-				activity.runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						String action = "javascript:proximiio.updatedPosition({coordinates:{lat:" + lat + ", lon:" + lon + "}, accuracy:" + accuracy + "})";
-						Log.d(TAG, "position update action: " + action);
-						webView.loadUrl(action);
-					}
-				});
-			}
+      @Override
+      public void position(final double lat, final double lon, final double accuracy) {
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+          String action = "javascript:proximiio.updatedPosition({coordinates:{lat:" + lat + ", lon:" + lon + "}, accuracy:" + accuracy + "})";
+          Log.d(TAG, "position update action: " + action);
+          webView.loadUrl(action);
+          }
+        });
+      }
 
-			@Override
-			public void loginFailed(LoginError loginError) {
-				Log.e(TAG, "LoginError! (" + loginError.toString() + ")");
-			}
+      @Override
+      public void loginFailed(LoginError loginError) {
+        Log.e(TAG, "LoginError! (" + loginError.toString() + ")");
+      }
 
 
-			/**
-			 * Push output from Proximiio
-			 * @param title Text received
-			 * @return Is this push handled? (If not, Proximiio generates a snackbar)
-			 */
-			@Override
-			public boolean push(String title) {
-				return true;
-			}
+      /**
+       * Push output from Proximiio
+       * @param title Text received
+       * @return Is this push handled? (If not, Proximiio generates a snackbar)
+       */
+      @Override
+      public boolean push(String title) {
+        return true;
+      }
 
-			/**
-			* Receives JSON payloads from Proximiio events' outputs.
-			* @param json JSON received as specified in payload.
-			*/
-			@Override
-			public void output(final JSONObject json) {
+      /**
+      * Receives JSON payloads from Proximiio events' outputs.
+      * @param json JSON received as specified in payload.
+      */
+      @Override
+      public void output(final JSONObject json) {
+        Log.d(TAG, "output received!");
+        Log.d(TAG, "output received:" + json.toString());
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            Log.d(TAG, "output received:" + json.toString());
+            webView.loadUrl("javascript:proximiio.triggeredOutput(" + json.toString() + ")");
+          }
+        });
+      }
 
-				Log.d(TAG, "output received!");
-				Log.d(TAG, "output received:" + json.toString());
-				activity.runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Log.d(TAG, "output received:" + json.toString());
-						webView.loadUrl("javascript:proximiio.triggeredOutput(" + json.toString() + ")");
-					}
-				});
-			}
+    };
 
-		});
+    proximiio.addListener(listener);
 
-		// Login to Proximi.io
-		proximiio.setAuth(token);
+    // Login to Proximi.io
+    proximiio.setAuth(token);
 
-		activity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				Toast.makeText(activity, "Init success!", Toast.LENGTH_SHORT).show();
-			}
-		});
-	}
+    activity.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+      Toast.makeText(activity, "Init success!", Toast.LENGTH_SHORT).show();
+      }
+    });
+  }
 
-	@Override
-	public void onStart() {
-		activity = cordova.getActivity();
-		if (id != null && token != null) {
-			initProximiio();
-		}
-	}
+  @Override
+  public void onStart() {
+    activity = cordova.getActivity();
+    if (id != null && token != null) {
+      initProximiio();
+    }
+  }
 
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-	}
+  @Override
+  public void onStop() {
+      super.onStop();
+      proximiio.removeListener(listener);
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+      activity.onRequestPermissionsResult(requestCode, permissions, grantResults);
+      proximiio.onRequestPermissionsResult(requestCode, permissions, grantResults);
+  }
+
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      super.onActivityResult(requestCode, resultCode, data);
+      proximiio.onActivityResult(requestCode, resultCode, data);
+  }
 }
