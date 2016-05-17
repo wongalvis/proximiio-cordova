@@ -68,15 +68,17 @@ public class ProximiioCordova extends CordovaPlugin {
 			}
   
                         @Override
-                        public void changedFloor(final ProximiioFloor floor) {
-                                Log.d(TAG, "changedFloor: " + floor.getName());
-                                activity.runOnUiThread(new Runnable() {
+                        public void changedFloor(@Nullable ProximiioFloor floor) {
+                        	if (floor != null) {
+                                  Log.d(TAG, "changedFloor: " + floor.getName());
+                                  final String floorJson = floor.getJSON().toString();
+                                  activity.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                                String floorJson = floor.getJSON().toString();
                                                 webView.loadUrl("javascript:proximiio.changedFloor(0, " + floorJson + ")");
                                         }
-                                }); 
+                                  }); 
+                        	}
  			}
 
 			@Override
