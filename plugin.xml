@@ -7,21 +7,21 @@
 		<clobbers target="proximiio" />
 	</js-module>
 
+        <hook type="after_platform_add" src="hooks/addEmbedded.js" />
+
 	<platform name="ios">
+
 		<config-file parent="/widget" target="config.xml">
 			<feature name="ProximiioCordova">
     			<param name="ios-package" value="proximiio" />
 			</feature>
 		</config-file>
+
 		<config-file target="*-Info.plist" parent="NSLocationAlwaysUsageDescription">
 				<string>Configure this string in the plist!</string>
 		</config-file>
 
-		<source-file src="src/ios/proximiio.m"/>
-		<resource-file src="src/ios/Proximiio.framework"/>
-
-		<framework src="src/ios/Proximiio.framework" custom="true" />
-
+                <framework src="src/ios/Proximiio.framework" custom="true" embed="true"/>
 		<framework src="CoreLocation.framework" />
 		<framework src="CoreBluetooth.framework" />
 		<framework src="SystemConfiguration.framework" />
