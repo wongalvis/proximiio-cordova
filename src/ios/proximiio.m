@@ -8,26 +8,23 @@
   // Member variables go here.
 }
 
-- (void)setIDandAuthToken:(CDVInvokedUrlCommand*)command;
-
+- (void)setToken:(CDVInvokedUrlCommand*)command;
 - (void)showPushMessage:(CDVInvokedUrlCommand*)command;
 
 @end
 
 @implementation proximiio
 
-- (void)setIDandAuthToken:(CDVInvokedUrlCommand*)command
+- (void)setToken:(CDVInvokedUrlCommand*)command
 {
     NSString* callbackId    = [command callbackId];
-    NSString* idStr         = [[command arguments] objectAtIndex:0];
-    NSString* authToken     = [[command arguments] objectAtIndex:1];
+    NSString* authToken     = [[command arguments] objectAtIndex:0];
 
     [[self commandDelegate] runInBackground:^{
-        [[Proximiio sharedInstance] setAppID:idStr andAuthToken:authToken];
         [[Proximiio sharedInstance] setDelegate:self];
-        
+        [[Proximiio sharedInstance] authWithToken:authToken];
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        
+
         [[self commandDelegate] sendPluginResult:result callbackId:callbackId];
     }];
 }
@@ -43,7 +40,7 @@
         [[Proximiio sharedInstance] setDebug:NO];
 
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        
+
     [[self commandDelegate] sendPluginResult:result callbackId:callbackId];
 }
 
@@ -53,7 +50,7 @@
     NSString* idStr         = [[command arguments] objectAtIndex:0];
 
     CDVPluginResult* result;
-        
+
     if(idStr != nil)
     {
         ProximiioPushOutput *pushOutput = (ProximiioPushOutput*)[[[Proximiio sharedInstance] outputs] objectForKey:idStr];
@@ -72,13 +69,13 @@
 
 - (NSString*)beaconToString:(ProximiioBeacon*)beacon
 {
-    return [NSString stringWithFormat:@"{uuid:'%@', major:%d, minor:%d, accuracy:%f}", 
+    return [NSString stringWithFormat:@"{uuid:'%@', major:%d, minor:%d, accuracy:%f}",
         [[beacon uuid] UUIDString], [beacon major], [beacon minor], [beacon distance]];
 }
 
 - (NSString*)eddystoneToString:(ProximiioEddystoneBeacon*)beacon
 {
-    return [NSString stringWithFormat:@"{namespace:'%@', instanceID:'%@', url:'%@', batteryVoltage:%.2f, temperature:%.2f, uptime:%d, pdu:%d}", 
+    return [NSString stringWithFormat:@"{namespace:'%@', instanceID:'%@', url:'%@', batteryVoltage:%.2f, temperature:%.2f, uptime:%d, pdu:%d}",
         [beacon Namespace], [beacon InstanceID], [beacon URL], [[beacon batteryVoltage] floatValue], [[beacon temperature] floatValue], [[beacon uptime] intValue], [[beacon PDU] intValue]];
 }
 
