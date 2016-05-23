@@ -21,6 +21,7 @@
 				<string>Configure this string in the plist!</string>
 		</config-file>
 
+                <source-file src="src/ios/proximiio.m" />
                 <framework src="src/ios/Proximiio.framework" custom="true" embed="true"/>
 		<framework src="CoreLocation.framework" />
 		<framework src="CoreBluetooth.framework" />
