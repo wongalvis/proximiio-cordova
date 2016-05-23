@@ -21,7 +21,9 @@
     NSString* authToken     = [[command arguments] objectAtIndex:0];
 
     [[self commandDelegate] runInBackground:^{
+        NSLog(@"setting proximiio delegate");
         [[Proximiio sharedInstance] setDelegate:self];
+        NSLog(@"setting proximiio token: %@", authToken);
         [[Proximiio sharedInstance] authWithToken:authToken];
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
 
@@ -34,13 +36,12 @@
     NSString* callbackId    = [command callbackId];
     NSString* enableString  = [[command arguments] objectAtIndex:0];
 
-    if([enableString isEqualToString:@"true"])
-        [[Proximiio sharedInstance] setDebug:YES];
-    else
-        [[Proximiio sharedInstance] setDebug:NO];
+//    if([enableString isEqualToString:@"true"])
+//        [[Proximiio sharedInstance] setDebug:YES];
+//    else
+//        [[Proximiio sharedInstance] setDebug:NO];
 
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-
     [[self commandDelegate] sendPluginResult:result callbackId:callbackId];
 }
 
@@ -53,14 +54,15 @@
 
     if(idStr != nil)
     {
-        ProximiioPushOutput *pushOutput = (ProximiioPushOutput*)[[[Proximiio sharedInstance] outputs] objectForKey:idStr];
-        if([pushOutput respondsToSelector:@selector(display)])
-        {
-            [pushOutput display];
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        }
-        else
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+          result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+//        ProximiioPushOutput *pushOutput = (ProximiioPushOutput*)[[[Proximiio sharedInstance] outputs] objectForKey:idStr];
+//        if([pushOutput respondsToSelector:@selector(display)])
+//        {
+//            [pushOutput display];
+//            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+//        }
+//        else
+//            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
     }
     else
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
@@ -79,77 +81,44 @@
         [beacon Namespace], [beacon InstanceID], [beacon URL], [[beacon batteryVoltage] floatValue], [[beacon temperature] floatValue], [[beacon uptime] intValue], [[beacon PDU] intValue]];
 }
 
-- (NSString*)inputToString:(ProximiioInput*)input
+- (BOOL)proximiioHandlePushMessage:(NSString*)title
 {
-    NSString *typeString = @"Unknown";
-    if([input class] == [ProximiioIBeaconInput class])
-    {
-        ProximiioIBeaconInput *beaconInput = (ProximiioIBeaconInput*)input;
-        return [NSString stringWithFormat:@"\"({type:'iBeacon', id:'%@', name:'%@', accuracy:%f, coordinates:{lat:%f, lon:%f}, departmentid:'%@', entered:%d, beacon:%@})\"", [input ID], [input name], [input accuracy], [[input coordinates] latitude], [[input coordinates] longitude], [input departmentUID], [input entered] ? 1 : 0, [self beaconToString:[beaconInput beacon]]];
-    }
-    else if([input class] == [ProximiioEddystoneInput class])
-    {
-        ProximiioEddystoneInput *eddystoneInput = (ProximiioEddystoneInput*)input;
-        return [NSString stringWithFormat:@"\"({type:'Eddystone', id:'%@', name:'%@', accuracy:0, coordinates:{lat:%f, lon:%f}, departmentid:'%@', entered:%d, beacon:%@})\"", [input ID], [input name], [[input coordinates] latitude], [[input coordinates] longitude], [input departmentUID], [input entered] ? 1 : 0, [self eddystoneToString:[eddystoneInput lastTriggerBeacon]]];
-    }
-    else if([input class] == [ProximiioGeofenceInput class])
-        typeString = @"GPSGeofence";
-    else if([input class] == [ProximiioIndoorAtlasInput class])
-        typeString = @"IndoorAtlas";
-    return [NSString stringWithFormat:@"\"({type:'%@', id:'%@', name:'%@', accuracy:%f, coordinates:{lat:%f, lon:%f}, departmentid:'%@', entered:%d})\"", typeString, [input ID], [input name], [input accuracy], [[input coordinates] latitude], [[input coordinates] longitude], [input departmentUID], [input entered] ? 1 : 0];
+    [self runJavascript:[NSString stringWithFormat:@"proximiio.pushMessage(\"%@\");", title]];
+    return YES;
 }
 
-- (NSString*)outputToString:(ProximiioOutput*)output
+- (void)proximiioHandleOutput:(NSObject*)payload
 {
-    if([output class] == [ProximiioPushOutput class])
-    {
-        ProximiioPushOutput *pushOutput = (ProximiioPushOutput*)output;
-
-        return [NSString stringWithFormat:@"\"({type:'PushMessage', id:'%@', title:'%@', content:'%@'})\"", [output ID], [[pushOutput title] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""], [[pushOutput content] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""]];
-    }
-    else if([output class] == [ProximiioRawOutput class])
-    {
-        return [NSString stringWithFormat:@"\"({type:'Raw', id:'%@'})\"", [output ID]];
-    }
-    else if([output class] == [ProximiioXHTMLOutput class])
-    {
-        ProximiioXHTMLOutput *xhtmlOutput = (ProximiioXHTMLOutput*)output;
-        return [NSString stringWithFormat:@"\"({type:'XHTML', id:'%@', title:'%@', content:'%@'})\"", [output ID], [[xhtmlOutput title] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""], [[xhtmlOutput content] stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""]];
-    }
-    else
-        return [NSString stringWithFormat:@"\"({type:'Unkown', id:'%@'})\"", [output ID]];
+    [self runJavascript:[NSString stringWithFormat:@"proximiio.triggeredOutput(%@);", payload]];
 }
 
-- (NSString*)coordinatesToString:(ProximiioCoordinates*)coordinates
+- (void)proximiioEnteredGeofence:(ProximiioGeofence*)geofence
 {
-        return [NSString stringWithFormat:@"\"({lat:%f, lon:%f})\"", [coordinates latitude], [coordinates longitude]];
+    [self runJavascript:[NSString stringWithFormat:@"proximiio.triggeredInput(1, %@);", geofence.json]];
 }
 
-/*
-Delegate functions
-*/
-- (void)proximiio:(Proximiio *)proximiio triggeredOutput:(ProximiioOutput *)output forInput:(ProximiioInput *)input inActionFlow:(ProximiioActionFlow *)actionFlow
+- (void)proximiioExitedGeofence:(ProximiioGeofence*)geofence
 {
-    NSString* jsString = [NSString stringWithFormat:@"proximiio.triggeredOutput(%@, %@);", [self outputToString:output], [self inputToString:input]];
-    [[self webView] performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:jsString waitUntilDone:NO];
+    [self runJavascript:[NSString stringWithFormat:@"proximiio.triggeredInput(0, %@);", geofence.json]];
 }
 
-- (void)proximiio:(Proximiio*)proximiio triggeredInput:(ProximiioInput*)input entered:(BOOL)enter
+- (void)proximiioPositionUpdated:(CLLocation *)location
 {
-    NSString* jsString = [NSString stringWithFormat:@"proximiio.triggeredInput(%d, %@);", enter ? 1 : 0, [self inputToString:input]];
-    [[self webView] performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:jsString waitUntilDone:NO];
-}
-
-- (void)proximiio:(Proximiio *)proximiio updatedPositionToCoordinates:(ProximiioCoordinates*)coordinates byInputType:(ProximiioUpdateType)updateType;
-{
-    NSString* jsString = [NSString stringWithFormat:@"proximiio.updatedPosition(%@);", [self coordinatesToString:coordinates]];
-    [[self webView] performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:jsString waitUntilDone:NO];
+    NSString *coordinates = [NSString stringWithFormat:@"{\"latitude\": %1.8f, \"longitude\": %1.8f}", location.coordinate.latitude, location.coordinate.longitude];
+    NSString *jsString = [NSString stringWithFormat:@"proximiio.updatedPosition(%@);", coordinates];
+    [self runJavascript:jsString];
 }
 
 - (void)proximiio:(Proximiio *)proximiio encounteredError:(NSError*)error
 {
     NSString* jsString = [NSString stringWithFormat:@"proximiio.encounteredError(%ld, \"%@\", \"%@\");", (long)error.code, error.domain, error.localizedDescription];
-    [[self webView] performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:jsString waitUntilDone:NO];
+    [self runJavascript:jsString];
+}
+
+
+- (void)runJavascript:(NSString *)command
+{
+    [[self webView] performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:command waitUntilDone:NO];
 }
 
 @end
