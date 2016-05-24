@@ -30,14 +30,10 @@ FOUNDATION_EXPORT const unsigned char ProximiioVersionString[];
 @protocol ProximiioDelegate <NSObject>
 
 - (void)proximiioEnteredGeofence:(ProximiioGeofence*)geofence;
-
 - (void)proximiioExitedGeofence:(ProximiioGeofence*)geofence;
 
-
 - (void)proximiioPositionUpdated:(CLLocation*)location;
-
 - (void)proximiioFloorChanged:(ProximiioFloor*)floor;
-
 
 - (void)proximiioFoundiBeacon:(ProximiioBeacon*)beacon isRegistered:(BOOL)registered;
 

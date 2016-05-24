@@ -4,7 +4,7 @@
 
 #import <Proximiio/Proximiio.h>
 
-@interface proximiio : CDVPlugin {
+@interface proximiio : CDVPlugin <ProximiioDelegate> {
   // Member variables go here.
 }
 
@@ -21,12 +21,10 @@
     NSString* authToken     = [[command arguments] objectAtIndex:0];
 
     [[self commandDelegate] runInBackground:^{
-        NSLog(@"setting proximiio delegate");
         [[Proximiio sharedInstance] setDelegate:self];
-        NSLog(@"setting proximiio token: %@", authToken);
         [[Proximiio sharedInstance] authWithToken:authToken];
+        
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-
         [[self commandDelegate] sendPluginResult:result callbackId:callbackId];
     }];
 }
@@ -83,28 +81,33 @@
 
 - (BOOL)proximiioHandlePushMessage:(NSString*)title
 {
+    NSLog(@"handle push: %@", title);
     [self runJavascript:[NSString stringWithFormat:@"proximiio.pushMessage(\"%@\");", title]];
     return YES;
 }
 
 - (void)proximiioHandleOutput:(NSObject*)payload
 {
+    NSLog(@"handle output: %@", payload);
     [self runJavascript:[NSString stringWithFormat:@"proximiio.triggeredOutput(%@);", payload]];
 }
 
 - (void)proximiioEnteredGeofence:(ProximiioGeofence*)geofence
 {
+    NSLog(@"entered geofence: %@", geofence);
     [self runJavascript:[NSString stringWithFormat:@"proximiio.triggeredInput(1, %@);", geofence.json]];
 }
 
 - (void)proximiioExitedGeofence:(ProximiioGeofence*)geofence
 {
+    NSLog(@"exited geofence: %@", geofence);
     [self runJavascript:[NSString stringWithFormat:@"proximiio.triggeredInput(0, %@);", geofence.json]];
 }
 
 - (void)proximiioPositionUpdated:(CLLocation *)location
 {
-    NSString *coordinates = [NSString stringWithFormat:@"{\"latitude\": %1.8f, \"longitude\": %1.8f}", location.coordinate.latitude, location.coordinate.longitude];
+    NSLog(@"positions updated");
+    NSString *coordinates = [NSString stringWithFormat:@"{\"accuracy\": %1.8f, \"coordinates\": {\"lat\": %1.8f, \"lon\": %1.8f}}", location.horizontalAccuracy, location.coordinate.latitude, location.coordinate.longitude];
     NSString *jsString = [NSString stringWithFormat:@"proximiio.updatedPosition(%@);", coordinates];
     [self runJavascript:jsString];
 }
@@ -118,7 +121,9 @@
 
 - (void)runJavascript:(NSString *)command
 {
+    NSLog(@"!!! runJavascript: %@", command);
     [[self webView] performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:command waitUntilDone:NO];
 }
 
 @end
+

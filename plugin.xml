@@ -17,6 +17,10 @@
 			</feature>
 		</config-file>
 
+                <config-file target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription">
+                                <string>Configure this string in the plist!</string>
+                </config-file>
+
 		<config-file target="*-Info.plist" parent="NSLocationAlwaysUsageDescription">
 				<string>Configure this string in the plist!</string>
 		</config-file>
