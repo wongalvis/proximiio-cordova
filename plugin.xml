@@ -25,6 +25,13 @@
 				<string>Configure this string in the plist!</string>
 		</config-file>
 
+                <config-file target="*-Info.plist" parent="UIBackgroundModes">
+                        <key>UIBackgroundModes</key>
+                        <array>
+                          <string>location</string>
+                        </array>
+                </config-file>
+                
                 <source-file src="src/ios/proximiio.m" />
                 <framework src="src/ios/Proximiio.framework" custom="true" embed="true"/>
 		<framework src="CoreLocation.framework" />
