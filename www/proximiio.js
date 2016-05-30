@@ -65,7 +65,7 @@ module.exports = {
     changedFloor: function(floor) {
         console.log('should change floor:', floor);
         var floorObj = eval(floor); 
-        changedFloorCallback(floorObj);
+        floorChangedCallback(floorObj);
     },
     encounteredError: function(code, id, str) {
         var errorObj = {};
