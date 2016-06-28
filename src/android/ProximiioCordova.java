@@ -13,7 +13,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import javax.security.auth.callback.Callback;
-import com.navtureapps.cordovaplugin.PermissionHelper;
 import io.proximi.proximiiolibrary.Proximiio;
 import io.proximi.proximiiolibrary.ProximiioFactory;
 import io.proximi.proximiiolibrary.ProximiioGeofence;
