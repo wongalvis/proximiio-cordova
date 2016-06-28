@@ -12,7 +12,8 @@ import org.json.JSONObject;
 import android.support.annotation.Nullable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
-
+import javax.security.auth.callback.Callback;
+import com.navtureapps.cordovaplugin.PermissionHelper;
 import io.proximi.proximiiolibrary.Proximiio;
 import io.proximi.proximiiolibrary.ProximiioFactory;
 import io.proximi.proximiiolibrary.ProximiioGeofence;
@@ -29,6 +30,7 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
   private boolean runOnBackground;
   private Activity activity;
   private static final String TAG = "ProximiioCordova";
+  CallbackContext context;
 
   private static final String ACTION_SET_TOKEN = "setToken";
   private static final String ACTION_SHOW_PUSH_MESSAGE = "showPushMessage";
@@ -39,6 +41,7 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
   @Override
   public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
     activity = cordova.getActivity();
+    context = callbackContext;
     cordova.setActivityResultCallback(this);
     if (action.equals(ACTION_SET_TOKEN)) {
         if (proximiio == null) {
