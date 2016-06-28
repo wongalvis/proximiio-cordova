@@ -18,7 +18,8 @@ import io.proximi.proximiiolibrary.ProximiioFactory;
 import io.proximi.proximiiolibrary.ProximiioGeofence;
 import io.proximi.proximiiolibrary.ProximiioListener;
 import io.proximi.proximiiolibrary.ProximiioFloor;
-;
+import android.Manifest;
+import android.os.Build;
 
 public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissionsResultCallback {
   private Proximiio proximiio;
