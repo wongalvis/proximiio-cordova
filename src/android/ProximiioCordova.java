@@ -33,6 +33,8 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
   private static final String ACTION_SHOW_PUSH_MESSAGE = "showPushMessage";
   private static final String ACTION_SET_RUN_ON_BACKGROUND = "setRunOnBackground";
 
+  String [] permissions = { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION };
+
   @Override
   public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
     activity = cordova.getActivity();
@@ -40,7 +42,15 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
     if (action.equals(ACTION_SET_TOKEN)) {
         if (proximiio == null) {
           token = args.getString(0);
-          initProximiio();
+          if(hasPermisssion()) {
+              PluginResult r = new PluginResult(PluginResult.Status.OK);
+              context.sendPluginResult(r);
+              return true;
+          }
+          else {
+              PermissionHelper.requestPermissions(this, 0, permissions);
+          }
+          return true;
         }
     } else if (action.equals(ACTION_SHOW_PUSH_MESSAGE)) {
 
@@ -175,5 +185,43 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
       super.onActivityResult(requestCode, resultCode, data);
       proximiio.onActivityResult(requestCode, resultCode, data);
+  }
+
+  public void onRequestPermissionResult(int requestCode, String[] permissions,
+                                        int[] grantResults) throws JSONException {
+      PluginResult result;
+      for(int r:grantResults)
+      {
+          if(r == PackageManager.PERMISSION_DENIED)
+          {
+              LOG.d(TAG, "Permission Denied!");
+              result = new PluginResult(PluginResult.Status.ILLEGAL_ACCESS_EXCEPTION);
+              context.sendPluginResult(result);
+              return;
+          }
+      }
+      result = new PluginResult(PluginResult.Status.OK);
+      initProximiio();
+      context.sendPluginResult(result);
+  }
+
+  public boolean hasPermisssion() {
+      for(String p : permissions)
+      {
+          if(!PermissionHelper.hasPermission(this, p))
+          {
+              return false;
+          }
+      }
+      return true;
+  }
+
+  /*
+   * We override this so that we can access the permissions variable, which no longer exists in
+   * the parent class, since we can't initialize it reliably in the constructor!
+   */
+
+  public void requestPermissions(int requestCode) {
+      PermissionHelper.requestPermissions(this, requestCode, permissions);
   }
 }
