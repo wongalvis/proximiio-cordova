@@ -5,6 +5,9 @@ var outputTriggerCallback   = null;
 var positionChangeCallback  = null;
 var floorChangedCallback    = null;
 var errorCallback           = null;
+var proximiioReadyCallback  = null;
+var beaconFoundCallback     = null;
+var beaconLostCallback      = null;
 
 module.exports = {
     setToken: function (authToken, successCallback, errorCallback) {
@@ -36,14 +39,20 @@ module.exports = {
     {
         errorCallback = callback;
     },
-
-    displayPushOutputMessage: function(pushOutput, successCallback, errorCallback)
-    {
+    setProximiioReadyCallback: function(callback) {
+        proximiioReadyCallback = callback;
+    },
+    setBeaconFoundCallback: function(callback) {
+        beaconFoundCallback = callback;
+    },
+    setBeaconLostCallback: function(callback) {
+        beaconLostCallback = callback;
+    },
+    displayPushOutputMessage: function(pushOutput, successCallback, errorCallback) {
         cordova.exec(successCallback, errorCallback, "ProximiioCordova", "showPushMessage", [pushOutput.id]);
     },
 
-    setRunOnBackground: function(run, successCallback, errorCallback)
-    {
+    setRunOnBackground: function(run, successCallback, errorCallback) {
         cordova.exec(successCallback, errorCallback, "ProximiioCordova", "setRunOnBackground", [run]);
     },
 
@@ -66,6 +75,17 @@ module.exports = {
         console.log('should change floor:', floor);
         var floorObj = eval(floor); 
         floorChangedCallback(floorObj);
+    },
+    proximiioReady: function(visitorId) {
+        proximiioReadyCallback(visitorId);
+    },
+    beaconFound: function(beacon) {
+        var beaconObj = eval(beacon);
+        beaconFoundCallback(beaconObj);
+    },
+    beaconLost: function(beacon) {
+        var beaconObj = eval(beacon);
+        beaconLostCallback(beaconObj);
     },
     encounteredError: function(code, id, str) {
         var errorObj = {};

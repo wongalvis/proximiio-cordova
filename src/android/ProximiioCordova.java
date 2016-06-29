@@ -129,7 +129,7 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
        */
       @Override
       public boolean push(String title) {
-        return true;
+        return false;
       }
 
       /**
@@ -138,17 +138,41 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
       */
       @Override
       public void output(final JSONObject json) {
-        Log.d(TAG, "output received!");
-        Log.d(TAG, "output received:" + json.toString());
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
-            Log.d(TAG, "output received:" + json.toString());
             webView.loadUrl("javascript:proximiio.triggeredOutput(" + json.toString() + ")");
           }
         });
       }
 
+      @Override
+      public void foundBeacon(ProximiioBeacon beacon, boolean registered) {
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (registered) {
+              webView.loadUrl("javascript:proximiio.foundBeacon(" + beacon.getInput().getJSON() + ")");   
+            } else {
+              webView.loadUrl("javascript:proximiio.foundBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.accuracy + ",\"uuid\": \"" + beacon.uuid +"\", \"major\": " + beacon.major + ", \"minor\": " + beacon.minor + ", \"namespace\": \"" + beacon.namespace + "\"instance\": \"" + beacon.instanceID + "\"})"); 
+            }
+          }
+        });
+      }
+
+      @Override
+      public void lostBeacon(ProximiioBeacon beacon, boolean registered) {
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (registered) {
+              webView.loadUrl("javascript:proximiio.lostBeacon(" + beacon.getInput().getJSON() + ")");
+            } else {
+              webView.loadUrl("javascript:proximiio.lostBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.accuracy + ",\"uuid\": \"" + beacon.uuid +"\", \"major\": " + beacon.major + ", \"minor\": " + beacon.minor + ", \"namespace\": \"" + beacon.namespace + "\"instance\": \"" + beacon.instanceID + "\"})");
+            }
+          }
+        });
+      }
     };
 
     proximiio.addListener(listener);
@@ -159,7 +183,8 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
     activity.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-      Toast.makeText(activity, "Init success!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(activity, "Init success!", Toast.LENGTH_SHORT).show();
+        webView.loadUrl("javascript:proximiio.proximiioReady(\"" + proximiio.getVisitorID() + "\")");
       }
     });
   }
