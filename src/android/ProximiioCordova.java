@@ -45,14 +45,19 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
     context = callbackContext;
     cordova.setActivityResultCallback(this);
     if (action.equals(ACTION_SET_TOKEN)) {
+        Log.d(TAG, "ACTION_SET_TOKEN");
         if (proximiio == null) {
+          Log.d(TAG, "proximiio is null, initializing");
           token = args.getString(0);
           if(hasPermisssion()) {
+              Log.d(TAG, "hasPermission");
               PluginResult r = new PluginResult(PluginResult.Status.OK);
               context.sendPluginResult(r);
+              initProximiio();
               return true;
           }
           else {
+              Log.d(TAG, "Permissions not found, requesting");
               PermissionHelper.requestPermissions(this, 0, permissions);
           }
           return true;
@@ -154,8 +159,10 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
           @Override
           public void run() {
             if (registered) {
+              Log.d(TAG, "beaconFound registered:true" + beacon.getInput().getJSON());
               webView.loadUrl("javascript:proximiio.foundBeacon(" + beacon.getInput().getJSON() + ")");   
             } else {
+              Log.d(TAG, "beaconFound registered:false");
               webView.loadUrl("javascript:proximiio.foundBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\"instance\": \"" + beacon.getInstanceID() + "\"})"); 
             }
           }
@@ -186,6 +193,7 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
       @Override
       public void run() {
         Toast.makeText(activity, "Init success!", Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "hasVisitor:" + proximiio.getVisitorID());
         webView.loadUrl("javascript:proximiio.proximiioReady(\"" + proximiio.getVisitorID() + "\")");
       }
     });

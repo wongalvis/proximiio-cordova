@@ -79,11 +79,11 @@ module.exports = {
     proximiioReady: function(visitorId) {
         proximiioReadyCallback(visitorId);
     },
-    beaconFound: function(beacon) {
+    foundBeacon: function(beacon) {
         var beaconObj = eval(beacon);
         beaconFoundCallback(beaconObj);
     },
-    beaconLost: function(beacon) {
+    lostBeacon: function(beacon) {
         var beaconObj = eval(beacon);
         beaconLostCallback(beaconObj);
     },
