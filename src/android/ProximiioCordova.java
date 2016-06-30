@@ -14,12 +14,14 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import javax.security.auth.callback.Callback;
 import io.proximi.proximiiolibrary.Proximiio;
+import io.proximi.proximiiolibrary.ProximiioBeacon;
 import io.proximi.proximiiolibrary.ProximiioFactory;
 import io.proximi.proximiiolibrary.ProximiioGeofence;
 import io.proximi.proximiiolibrary.ProximiioListener;
 import io.proximi.proximiiolibrary.ProximiioFloor;
 import android.Manifest;
 import android.os.Build;
+import android.content.pm.PackageManager;
 
 public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissionsResultCallback {
   private Proximiio proximiio;
@@ -147,28 +149,28 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
       }
 
       @Override
-      public void foundBeacon(ProximiioBeacon beacon, boolean registered) {
+      public void foundBeacon(final ProximiioBeacon beacon, final boolean registered) {
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
             if (registered) {
               webView.loadUrl("javascript:proximiio.foundBeacon(" + beacon.getInput().getJSON() + ")");   
             } else {
-              webView.loadUrl("javascript:proximiio.foundBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.accuracy + ",\"uuid\": \"" + beacon.uuid +"\", \"major\": " + beacon.major + ", \"minor\": " + beacon.minor + ", \"namespace\": \"" + beacon.namespace + "\"instance\": \"" + beacon.instanceID + "\"})"); 
+              webView.loadUrl("javascript:proximiio.foundBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\"instance\": \"" + beacon.getInstanceID() + "\"})"); 
             }
           }
         });
       }
 
       @Override
-      public void lostBeacon(ProximiioBeacon beacon, boolean registered) {
+      public void lostBeacon(final ProximiioBeacon beacon, final boolean registered) {
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
             if (registered) {
               webView.loadUrl("javascript:proximiio.lostBeacon(" + beacon.getInput().getJSON() + ")");
             } else {
-              webView.loadUrl("javascript:proximiio.lostBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.accuracy + ",\"uuid\": \"" + beacon.uuid +"\", \"major\": " + beacon.major + ", \"minor\": " + beacon.minor + ", \"namespace\": \"" + beacon.namespace + "\"instance\": \"" + beacon.instanceID + "\"})");
+              webView.loadUrl("javascript:proximiio.lostBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\"instance\": \"" + beacon.getInstanceID() + "\"})");
             }
           }
         });
@@ -200,19 +202,25 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
   @Override
   public void onStop() {
       super.onStop();
-      proximiio.removeListener(listener);
+      if (proximiio != null) {
+        proximiio.removeListener(listener);
+      }
   }
 
   @Override
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
       activity.onRequestPermissionsResult(requestCode, permissions, grantResults);
-      proximiio.onRequestPermissionsResult(requestCode, permissions, grantResults);
+      if (proximiio != null) {
+        proximiio.onRequestPermissionsResult(requestCode, permissions, grantResults);
+      }
   }
 
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
       super.onActivityResult(requestCode, resultCode, data);
-      proximiio.onActivityResult(requestCode, resultCode, data);
+      if (proximiio != null) {
+        proximiio.onActivityResult(requestCode, resultCode, data);
+      }
   }
 
   public void onRequestPermissionResult(int requestCode, String[] permissions,
