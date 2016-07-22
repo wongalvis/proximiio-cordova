@@ -18,18 +18,18 @@
 		</config-file>
 
 	  <config-file target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription">
-	                  <string>Configure this string in the plist!</string>
+			<string>Configure this string in the plist!</string>
 	  </config-file>
 
 		<config-file target="*-Info.plist" parent="NSLocationAlwaysUsageDescription">
-				<string>Configure this string in the plist!</string>
+			<string>Configure this string in the plist!</string>
 		</config-file>
 
     <config-file target="*-Info.plist" parent="UIBackgroundModes">
-            <key>UIBackgroundModes</key>
-            <array>
-              <string>location</string>
-            </array>
+			<key>UIBackgroundModes</key>
+				<array>
+				<string>location</string>
+			</array>
     </config-file>
 
     <source-file src="src/ios/proximiio.m" />
