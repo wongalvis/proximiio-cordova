@@ -28,14 +28,17 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
   private ProximiioListener listener;
   private String id;
   private String token;
-  private boolean runOnBackground;
+  private boolean handlePush = true;
+  private boolean enableDebug = false;
+
   private Activity activity;
   private static final String TAG = "ProximiioCordova";
+
   CallbackContext context;
 
   private static final String ACTION_SET_TOKEN = "setToken";
-  private static final String ACTION_SHOW_PUSH_MESSAGE = "showPushMessage";
-  private static final String ACTION_SET_RUN_ON_BACKGROUND = "setRunOnBackground";
+  private static final String ACTION_ENABLE_DEBUG = "enableDebug";  
+  private static final String ACTION_HANDLE_PUSH = "handlePush";
 
   String [] permissions = { Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION };
 
@@ -59,10 +62,13 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
           }
           return true;
         }
-    } else if (action.equals(ACTION_SHOW_PUSH_MESSAGE)) {
-
-    } else if (action.equals(ACTION_SET_RUN_ON_BACKGROUND)) {
-      runOnBackground = args.getBoolean(0);
+    } else if (action.equals(ACTION_ENABLE_DEBUG)) {
+      String value = args.getString(0);
+      enableDebug = value.equals('true');
+      log("execute", "Debug mode enabled");
+    } else if (action.equals(ACTION_HANDLE_PUSH)) {
+      String value = args.getString(0);
+      handlePush = value.equals('true');
     }
     return true;
   }
@@ -72,28 +78,26 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
     listener = new ProximiioListener() {
       @Override
       public void geofenceEnter(final ProximiioGeofence geofence) {
-        Log.d(TAG, "Geofence enter: " + geofence.getName());
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-          String geofenceJson = geofence.getJSON().toString();
-          String action = "javascript:proximiio.triggeredInput(1, " + geofenceJson + ")";
-          Log.d(TAG, "geofenceEnter:" + action);
-          webView.loadUrl(action);
+              String geofenceJson = geofence.getJSON().toString();
+              String action = "javascript:proximiio.triggeredInput(1, " + geofenceJson + ")";
+              log("geofenceEnter", action);
+              webView.loadUrl(action);
             }
         });
       }
 
       @Override
       public void geofenceExit(final ProximiioGeofence geofence) {
-        Log.d(TAG, "Geofence exit: " + geofence.getName());
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
-          String geofenceJson = geofence.getJSON().toString();
-          String action = "javascript:proximiio.triggeredInput(0, " + geofenceJson + ")";
-          Log.d(TAG, "geoenceExit:" + action);
-          webView.loadUrl(action);
+            String geofenceJson = geofence.getJSON().toString();
+            String action = "javascript:proximiio.triggeredInput(0, " + geofenceJson + ")";
+            log("geofenceExit", action);
+            webView.loadUrl(action);
           }
         });
       }
@@ -101,12 +105,13 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
       @Override
       public void changedFloor(@Nullable ProximiioFloor floor) {
         if (floor != null) {
-          Log.d(TAG, "changedFloor: " + floor.getName());
           final String floorJson = floor.getJSON().toString();
           activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                        webView.loadUrl("javascript:proximiio.changedFloor(0, " + floorJson + ")");
+                  String action = "javascript:proximiio.changedFloor(0, " + floorJson + ")";
+                  log("changedFloor", action);
+                  webView.loadUrl(action);
                 }
           });
         }
@@ -114,12 +119,13 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
 
       @Override
       public void position(final double lat, final double lon, final double accuracy) {
-        Log.d(TAG, "position updated");
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
           String action = "javascript:proximiio.updatedPosition({coordinates:{lat:" + lat + ", lon:" + lon + "}, accuracy:" + accuracy + "})";
-          Log.d(TAG, "position update action: " + action);
+          if (enableDebug) {
+            log("position", action);
+          }
           webView.loadUrl(action);
           }
         });
@@ -150,8 +156,9 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
-            Log.d(TAG, "output:" + "javascript:proximiio.triggeredOutput(" + json.toString() + ")");
-            webView.loadUrl("javascript:proximiio.triggeredOutput(" + json.toString() + ")");
+            String action = "javascript:proximiio.triggeredOutput(" + json.toString() + ")";
+            log("output", action);
+            webView.loadUrl(action);
           }
         });
       }
@@ -161,15 +168,14 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
+            String action;
             if (registered) {
-              Log.d(TAG, "beaconFound registered:true" + beacon.getInput().getJSON());
-              webView.loadUrl("javascript:proximiio.foundBeacon(" + beacon.getInput().getJSON() + ")");
+              action = "javascript:proximiio.foundBeacon(" + beacon.getInput().getJSON() + ")";
             } else {
-              Log.d(TAG, "beaconFound registered:false");
-              String url = "javascript:proximiio.foundBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\", \"instance\": \"" + beacon.getInstanceID() + "\"})";
-              Log.d(TAG, "beaconFound:" + url);
-              webView.loadUrl(url);
+              action = "javascript:proximiio.foundBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\", \"instance\": \"" + beacon.getInstanceID() + "\"})";
             }
+            log("foundBeacon", action);
+            webView.loadUrl(action);
           }
         });
       }
@@ -179,31 +185,39 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
+            String action;
             if (registered) {
-              webView.loadUrl("javascript:proximiio.lostBeacon(" + beacon.getInput().getJSON() + ")");
+              action = "javascript:proximiio.lostBeacon(" + beacon.getInput().getJSON() + ")";
             } else {
-              String url = "javascript:proximiio.lostBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\", \"instance\": \"" + beacon.getInstanceID() + "\"})";
-              Log.d(TAG, "lostBeacon:" + url);
-              webView.loadUrl(url);
+              action = "javascript:proximiio.lostBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\", \"instance\": \"" + beacon.getInstanceID() + "\"})";
             }
+            log("lostBeacon", action);
+            webView.loadUrl(url);
           }
         });
       }
     };
 
     proximiio.addListener(listener);
-
-    // Login to Proximi.io
     proximiio.setAuth(token);
 
     activity.runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(activity, "Init success!", Toast.LENGTH_SHORT).show();
-        Log.d(TAG, "hasVisitor:" + proximiio.getVisitorID());
-        webView.loadUrl("javascript:proximiio.proximiioReady(\"" + proximiio.getVisitorID() + "\")");
+        String action = "javascript:proximiio.proximiioReady(\"" + proximiio.getVisitorID() + "\")";
+        log("initProximiio", action);
+        if (enableDebug) {
+          Toast.makeText(activity, "Proximi.io Initialized!", Toast.LENGTH_SHORT).show();
+        }
+        webView.loadUrl(action);
       }
     });
+  }
+
+  private void log(String method, String action) {
+    if (enableDebug) {
+      Log.d(TAG, method + ": " + action);
+    }
   }
 
   @Override
@@ -241,11 +255,9 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
   public void onRequestPermissionResult(int requestCode, String[] permissions,
                                         int[] grantResults) throws JSONException {
       PluginResult result;
-      for(int r:grantResults)
-      {
-          if(r == PackageManager.PERMISSION_DENIED)
-          {
-              LOG.d(TAG, "Permission Denied!");
+      for(int r:grantResults) {
+          if(r == PackageManager.PERMISSION_DENIED) {
+              Log.d(TAG, "Permission Denied!");
               result = new PluginResult(PluginResult.Status.ILLEGAL_ACCESS_EXCEPTION);
               context.sendPluginResult(result);
               return;
@@ -257,10 +269,8 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
   }
 
   public boolean hasPermisssion() {
-      for(String p : permissions)
-      {
-          if(!PermissionHelper.hasPermission(this, p))
-          {
+      for(String p : permissions) {
+          if(!PermissionHelper.hasPermission(this, p)) {
               return false;
           }
       }

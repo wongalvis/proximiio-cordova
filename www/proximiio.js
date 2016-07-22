@@ -1,7 +1,12 @@
 /*global cordova, module*/
 
+var PLUGIN = 'ProximiioCordova';
+var ACTION_SET_TOKEN = 'setToken';
+var ACTION_ENABLE_DEBUG = 'enableDebug';
+var ACTION_HANDLE_PUSH = 'handlePush';
+
 var dummy = function (obj) {
-  console.log('proximiio dummy:' + JSON.stringify(obj));
+  console.log('proximi.io default callback:' + JSON.stringify(obj));
 };
 
 var inputTriggerCallback    = dummy;
@@ -14,61 +19,127 @@ var beaconFoundCallback     = dummy;
 var beaconLostCallback      = dummy;
 
 module.exports = {
-  setToken: function (authToken, successCallback, errorCallback) {
-    cordova.exec(successCallback, errorCallback, 'ProximiioCordova', 'setToken', [authToken]);
+
+  // ACTIONS
+
+  /**
+   * Sets authorization token and initializes Proximi.io native plugin
+   *
+   * @param authToken {String}
+   * @param successCallback {Function}
+   * @param failureCallback {Function}
+   * @returns
+   */
+  setToken: function (authToken, onSuccess, onError) {
+    cordova.exec(onSuccess, onError, PLUGIN, ACTION_SET_TOKEN, [authToken]);
   },
 
-  setDebugOutput: function (enableDebug, successCallback, errorCallback) {
-    var enableDebug = [(enableDebug || enableDebug > 0) ? 'true' : 'false'];
-    cordova.exec(successCallback, errorCallback, 'ProximiioCordova', 'enableDebug', enableDebug);
+  /**
+   * Sets debug output from native plugin (enables logs)
+   *
+   * @param enableDebug {Boolean}
+   * @param successCallback {Function}
+   * @param failureCallback {Function}
+   * @returns
+   */
+  setDebugOutput: function (enableDebug, onSuccess, onError) {
+    enableDebug = [(enableDebug || enableDebug > 0) ? 'true' : 'false'];
+    cordova.exec(onSuccess, onError, PLUGIN, ACTION_ENABLE_DEBUG, enableDebug);
   },
 
+  /**
+   * Sets automatic output push message handling by Proximi.io Native SDK
+   *
+   * @param value {Boolean}
+   * @param successCallback {Function}
+   * @param failureCallback {Function}
+   * @returns
+   */
+  handlePush: function (value, onSuccess, onError) {
+    value = [(value || value > 0) ? 'true' : 'false'];
+    cordova.exec(onSuccess, onError, PLUGIN, ACTION_HANDLE_PUSH, value);
+  },
+
+  // CALLBACKS
+
+  /**
+   * Sets input trigger callback
+   * this function is called when visitor enters or leaves Geofence
+   *
+   * @param callback(enter, geofence) {Function}
+   * @returns
+   */
   setInputTriggerCallback: function (callback) { inputTriggerCallback = callback; },
 
+  /**
+   * Sets output trigger callback
+   * this function is called when Proximi.io cloud produces output payload
+   *
+   * @param callback(output) {Function}
+   * @returns
+   */
   setOutputTriggerCallback: function (callback) { outputTriggerCallback = callback; },
 
+  /**
+   * Sets position change callback
+   * this function is called when Proximi.io detects position change
+   *
+   * @param callback(position) {Function}
+   * @returns
+   */
   setPositionChangeCallback: function (callback) { positionChangeCallback = callback; },
 
+  /**
+   * Floor change callback
+   * this function is called when Proximi.io detects floor change
+   *
+   * @param callback(floor) {Function}
+   * @returns
+   */
   setFloorChangedCallback: function (callback) { floorChangedCallback = callback; },
 
-  setErrorCallback: function (callback) { errorCallback = callback; },
-
+  /**
+   * Fires after proximi.io is completely initialized
+   * this function is called when Proximi.io detects floor change
+   *
+   * Provides Visitor ID in callback parameter
+   *
+   * @param callback(visitorId) {Function}
+   * @returns
+   */
   setProximiioReadyCallback: function (callback) { proximiioReadyCallback = callback; },
 
+  /**
+   * Called when Beacon is found
+   *
+   * @param callback(beacon) {Function}
+   * @returns
+   */
   setBeaconFoundCallback: function (callback) { beaconFoundCallback = callback; },
 
+  /**
+   * Called after Beacon is lost
+   *
+   * @param callback(beacon) {Function}
+   * @returns
+   */
   setBeaconLostCallback: function (callback) { beaconLostCallback = callback; },
 
-  displayPushOutputMessage: function (pushOutput, successCallback, errorCallback) {
-    cordova.exec(successCallback, errorCallback, 'ProximiioCordova', 'showPushMessage', [pushOutput.id]);
-  },
+  // NATIVE PLUGIN calls
 
-  setRunOnBackground: function (run, successCallback, errorCallback) {
-    cordova.exec(successCallback, errorCallback, 'ProximiioCordova', 'setRunOnBackground', [run]);
-  },
+  triggeredInput: function (enter, geofence) { inputTriggerCallback(enter, geofence); },
 
-  /* Called by native side */
-  triggeredInput: function (enter, geofence) {
-    inputTriggerCallback(enter, geofence);
-  },
+  triggeredOutput: function (output) { outputTriggerCallback(output); },
 
-  triggeredOutput: function (output) {
-    outputTriggerCallback(output);
-  },
+  updatedPosition: function (coords) { positionChangeCallback(coords); },
 
-  updatedPosition: function (coords) {
-    console.log('should updatePosition:' + coords);
-    var coordsObj = eval(coords);
-    positionChangeCallback(coords);
-  },
-
-  changedFloor: function (floor) { floorChangedCallback(eval(floor)); },
+  changedFloor: function (floor) { floorChangedCallback(floor); },
 
   proximiioReady: function (visitorId) { proximiioReadyCallback(visitorId); },
 
-  foundBeacon: function (beacon) { beaconFoundCallback(eval(beacon)); },
+  foundBeacon: function (beacon) { beaconFoundCallback(beacon); },
 
-  lostBeacon: function (beacon) { beaconLostCallback(eval(beacon)); },
+  lostBeacon: function (beacon) { beaconLostCallback(beacon); },
 
   encounteredError: function (code, id, str) {
     var errorObj = {};
