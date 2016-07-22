@@ -1,3 +1,5 @@
+ext.cdvMinSdkVersion = 18
+
 repositories {
     jcenter()
     flatDir {
@@ -12,12 +14,16 @@ repositories {
 }
 
 dependencies {
-    compile 'io.proximi.proximiiolibrary:proximiiolibrary:1.+'
+    compile 'io.proximi.proximiiolibrary:proximiiolibrary:2.0.1+'
 }
 
 android {
   packagingOptions {
     exclude 'META-INF/NOTICE'
     exclude 'META-INF/LICENSE'
+    exclude 'META-INF/LICENSE-FIREBASE.txt'
+    exclude 'lib/arm64-v8a/libcpaJNI.so'
+    exclude 'lib/armeabi/libsqlcipher.so'
+    exclude 'lib/x86/libsqlcipher.so'
   }
 }

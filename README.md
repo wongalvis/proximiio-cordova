@@ -2,7 +2,6 @@
 
 ### Installation / Cordova ###
 
-
 ```
 cordova plugin add https://github.com/proximiio/proximiio-cordova.git
 ```
@@ -20,23 +19,24 @@ ionic plugin add https://github.com/proximiio/proximiio-cordova.git
 
 ```
     onDeviceReady: function() {
-        console.log('onDeviceReady');
-        proximiio.setToken(PROXIMIIO_TOKEN);
-        //proximiio.setDebugOutput(true, null, null);
+        // execute on cordova/ionic device or platform ready
 
-        proximiio.setOutputTriggerCallback(function (output) {
-          // Your code here
-        });
+        proximiio.setDebugOutput(true, null, null);
 
-        proximiio.setInputTriggerCallback(function(enter, geofence) {
-          // Your code here
-        });
+        // set optional callbacks
+        proximiio.setProximiioReadyCallback(function(visitorId) {});        
+        proximiio.setInputTriggerCallback(function(enter, geofence) {});
+        proximiio.setOutputTriggerCallback(function(output) {});
+        proximiio.setPositionChangeCallback(function(position) {});
+        proximiio.setBeaconFoundCallback(function(beacon) {});
+        proximiio.setBeaconLostCallback(function(beacon) {});
+        proximiio.setFloorChangedCallback(function(floor) {});
 
-        proximiio.setPositionChangeCallback(function(coords) {
-          // Your code here, for example:
-          //document.getElementById("position-latitude").innerHTML = coords.coordinates.lat;
-          //document.getElementById("position-longitude").innerHTML = coords.coordinates.lon;
-          //document.getElementById("position-accuracy").innerHTML = coords.accuracy;
+        // this method initializes Proximi.io
+        proximiio.setToken(PROXIMIIO_TOKEN, function success() {
+          console.log('proximiio setToken success');
+        }, function failure(error) {
+          console.log('proximiio setToken failure' + error);
         });
     },
 ```

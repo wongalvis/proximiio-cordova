@@ -45,12 +45,9 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
     context = callbackContext;
     cordova.setActivityResultCallback(this);
     if (action.equals(ACTION_SET_TOKEN)) {
-        Log.d(TAG, "ACTION_SET_TOKEN");
         if (proximiio == null) {
-          Log.d(TAG, "proximiio is null, initializing");
           token = args.getString(0);
           if(hasPermisssion()) {
-              Log.d(TAG, "hasPermission");
               PluginResult r = new PluginResult(PluginResult.Status.OK);
               context.sendPluginResult(r);
               initProximiio();
@@ -80,7 +77,9 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
             @Override
             public void run() {
           String geofenceJson = geofence.getJSON().toString();
-          webView.loadUrl("javascript:proximiio.triggeredInput(1, " + geofenceJson + ")");
+          String action = "javascript:proximiio.triggeredInput(1, " + geofenceJson + ")";
+          Log.d(TAG, "geofenceEnter:" + action);
+          webView.loadUrl(action);
             }
         });
       }
@@ -92,7 +91,9 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
           @Override
           public void run() {
           String geofenceJson = geofence.getJSON().toString();
-          webView.loadUrl("javascript:proximiio.triggeredInput(0, " + geofenceJson + ")");
+          String action = "javascript:proximiio.triggeredInput(0, " + geofenceJson + ")";
+          Log.d(TAG, "geoenceExit:" + action);
+          webView.loadUrl(action);
           }
         });
       }
@@ -113,6 +114,7 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
 
       @Override
       public void position(final double lat, final double lon, final double accuracy) {
+        Log.d(TAG, "position updated");
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
@@ -148,6 +150,7 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
+            Log.d(TAG, "output:" + "javascript:proximiio.triggeredOutput(" + json.toString() + ")");
             webView.loadUrl("javascript:proximiio.triggeredOutput(" + json.toString() + ")");
           }
         });
@@ -160,10 +163,12 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
           public void run() {
             if (registered) {
               Log.d(TAG, "beaconFound registered:true" + beacon.getInput().getJSON());
-              webView.loadUrl("javascript:proximiio.foundBeacon(" + beacon.getInput().getJSON() + ")");   
+              webView.loadUrl("javascript:proximiio.foundBeacon(" + beacon.getInput().getJSON() + ")");
             } else {
               Log.d(TAG, "beaconFound registered:false");
-              webView.loadUrl("javascript:proximiio.foundBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\"instance\": \"" + beacon.getInstanceID() + "\"})"); 
+              String url = "javascript:proximiio.foundBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\", \"instance\": \"" + beacon.getInstanceID() + "\"})";
+              Log.d(TAG, "beaconFound:" + url);
+              webView.loadUrl(url);
             }
           }
         });
@@ -177,7 +182,9 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
             if (registered) {
               webView.loadUrl("javascript:proximiio.lostBeacon(" + beacon.getInput().getJSON() + ")");
             } else {
-              webView.loadUrl("javascript:proximiio.lostBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\"instance\": \"" + beacon.getInstanceID() + "\"})");
+              String url = "javascript:proximiio.lostBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\", \"instance\": \"" + beacon.getInstanceID() + "\"})";
+              Log.d(TAG, "lostBeacon:" + url);
+              webView.loadUrl(url);
             }
           }
         });
