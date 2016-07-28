@@ -64,11 +64,11 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
         }
     } else if (action.equals(ACTION_ENABLE_DEBUG)) {
       String value = args.getString(0);
-      enableDebug = value.equals('true');
+      enableDebug = value.equals("true");
       log("execute", "Debug mode enabled");
     } else if (action.equals(ACTION_HANDLE_PUSH)) {
       String value = args.getString(0);
-      handlePush = value.equals('true');
+      handlePush = value.equals("true");
     }
     return true;
   }
@@ -192,7 +192,7 @@ public class ProximiioCordova extends CordovaPlugin implements OnRequestPermissi
               action = "javascript:proximiio.lostBeacon({\"name\": \"Unknown Beacon\", \"accuracy\": "+ beacon.getAccuracy() + ",\"uuid\": \"" + beacon.getUUID() +"\", \"major\": " + beacon.getMajor() + ", \"minor\": " + beacon.getMinor() + ", \"namespace\": \"" + beacon.getNamespace() + "\", \"instance\": \"" + beacon.getInstanceID() + "\"})";
             }
             log("lostBeacon", action);
-            webView.loadUrl(url);
+            webView.loadUrl(action);
           }
         });
       }
